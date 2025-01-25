@@ -11,13 +11,14 @@ export type DownloadState = {
 
   percent: number
   size: DownloadSize
-  downloadState: 'downloading' | 'error' | 'end'
+  downloadState: 'downloading' | 'error' | 'end' | 'paused'
   children?: DownloadState[]
 
   error?: string
   extensionId?: string
   downloadType?: DownloadType | string
   localPath?: string
+  isPaused?: boolean
 }
 
 export type DownloadType = 'model' | 'extension'

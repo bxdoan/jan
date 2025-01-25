@@ -10,9 +10,47 @@ import LogoMark from '@/containers/Brand/Logo/Mark'
 import { selectedTextAtom } from '@/containers/Providers/Jotai'
 
 import SelectedText from './SelectedText'
+import suggestedPrompts from '@/helpers/atoms/suggested_prompts.json'
+
+// Tạo component gợi ý
+const FirstTimeSuggestions = ({ onSelectPrompt }: { onSelectPrompt: (prompt: string) => void }) => {
+  const [suggestions, setSuggestions] = useState({})
+
+  useEffect(() => {
+    setSuggestions(suggestedPrompts.categories)
+  }, [])
+
+  const renderSuggestionCategory = (categoryName: string, prompts: string[]) => (
+    <div key={categoryName} className="mb-4">
+      <h3 className="text-sm font-semibold text-gray-600 mb-2">
+        {categoryName.replace('_', ' ').toUpperCase()}
+      </h3>
+      <div className="flex flex-wrap gap-2">
+        {prompts.map((prompt, index) => (
+          <button
+            key={index}
+            onClick={() => onSelectPrompt(prompt)}
+            className="px-3 py-1 bg-[hsla(var(--app-bg-secondary))] hover:bg-[hsla(var(--app-bg-hover))] rounded-full text-xs text-[hsla(var(--text-secondary))] transition-colors"
+          >
+            {prompt}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="first-time-suggestions space-y-2">
+      {Object.entries(suggestions).map(([categoryName, prompts]) => 
+        renderSuggestionCategory(categoryName, prompts as string[])
+      )}
+    </div>
+  )
+}
 
 const UserInput = () => {
   const [inputValue, setInputValue] = useState('')
+  const [showSuggestions, setShowSuggestions] = useState(true)
   const inputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
   const selectedText = useAtomValue(selectedTextAtom)
@@ -42,6 +80,15 @@ const UserInput = () => {
   ) => {
     const { value } = event.target
     setInputValue(value)
+    // Ẩn gợi ý khi bắt đầu nhập
+    setShowSuggestions(value.trim() === '')
+  }
+
+  const handleSelectPrompt = (prompt: string) => {
+    // Loại bỏ phần tiền tố danh mục
+    const cleanPrompt = prompt.split(': ')[1] || prompt
+    setInputValue(cleanPrompt)
+    setShowSuggestions(false)
   }
 
   const onSubmit = (e: React.FormEvent) => {
@@ -52,6 +99,8 @@ const UserInput = () => {
       setInputValue('')
       window.core?.api?.hideQuickAskWindow()
       window.core?.api?.showMainWindow()
+      // Reset lại trạng thái gợi ý
+      setShowSuggestions(true)
     }
   }
 
@@ -77,6 +126,12 @@ const UserInput = () => {
           </Button>
         </div>
       </form>
+      
+      {/* Hiển thị gợi ý khi showSuggestions là true */}
+      {showSuggestions && (
+        <FirstTimeSuggestions onSelectPrompt={handleSelectPrompt} />
+      )}
+      
       <SelectedText onCleared={() => inputRef?.current?.focus()} />
     </div>
   )

@@ -1,8 +1,7 @@
 import { Fragment } from 'react'
-
 import { Progress, Modal, Button } from '@janhq/joi'
-
 import { useAtomValue, useSetAtom } from 'jotai'
+import { Pause, Play } from 'lucide-react'
 
 import useDownloadModel from '@/hooks/useDownloadModel'
 import {
@@ -15,7 +14,11 @@ import { formatDownloadPercentage } from '@/utils/converter'
 export default function DownloadingState() {
   const downloadStates = useAtomValue(modelDownloadStateAtom)
   const removeDownloadState = useSetAtom(removeDownloadStateAtom)
-  const { abortModelDownload } = useDownloadModel()
+  const { 
+    abortModelDownload, 
+    pauseModelDownload,
+    resumeModelDownload
+  } = useDownloadModel()
 
   const totalCurrentProgress = Object.values(downloadStates)
     .map((a) => a.size.transferred + a.size.transferred)
@@ -73,17 +76,33 @@ export default function DownloadingState() {
                         {formatDownloadPercentage(item?.percent)}
                       </span>
                     </div>
-                    <Button
-                      theme="destructive"
-                      onClick={() => {
-                        if (item?.modelId) {
-                          removeDownloadState(item?.modelId)
-                          abortModelDownload(item?.modelId)
-                        }
-                      }}
-                    >
-                      Cancel
-                    </Button>
+                    <div className="flex items-center gap-x-2">
+                      <Button
+                        theme="ghost"
+                        size="small"
+                        onClick={() => {
+                          if (item?.isPaused) {
+                            resumeModelDownload(item?.modelId)
+                          } else {
+                            pauseModelDownload(item?.modelId)
+                          }
+                        }}
+                      >
+                        {item?.isPaused ? <Play size={16} /> : <Pause size={16} />}
+                      </Button>
+                      <Button
+                        theme="destructive"
+                        size="small"
+                        onClick={() => {
+                          if (item?.modelId) {
+                            removeDownloadState(item?.modelId)
+                            abortModelDownload(item?.modelId)
+                          }
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}

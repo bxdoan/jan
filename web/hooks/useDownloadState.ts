@@ -55,6 +55,14 @@ export const setDownloadStateAtom = atom(
           )
           if (model) set(downloadedModelsAtom, (prev) => [...prev, model])
         }
+      } else if (state.downloadState === 'paused') {
+        // download paused
+        currentState[state.modelId] = {
+          ...currentState[state.modelId],
+          isPaused: true,
+          downloadState: 'paused',
+        }
+        set(modelDownloadStateAtom, currentState)
       } else if (state.downloadState === 'error') {
         // download error
         delete currentState[state.modelId]
